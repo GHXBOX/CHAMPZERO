@@ -37,16 +37,24 @@ function injectNotificationStyles() {
     document.head.appendChild(style);
 }
 
-// 2. Inject UI (FIXED LOCATION)
+// 2. Inject UI (FIXED LAYOUT)
 function injectNotificationUI() {
-    const authContainer = document.getElementById('auth-controls');
+    const authControls = document.getElementById('auth-controls');
     
-    // Safety check: if page doesn't have auth controls, stop
-    if (!authContainer) return;
+    // Safety check
+    if (!authControls) return;
+
+    // --- NEW FIX: Force the parent wrapper to be a Flexbox ---
+    // This ensures the bell and the text sit SIDE-BY-SIDE, not overlapping
+    const parentWrapper = authControls.parentElement;
+    if (parentWrapper) {
+        parentWrapper.classList.add('flex', 'items-center', 'gap-4');
+    }
+    // ---------------------------------------------------------
 
     // Create the Wrapper
     const wrapper = document.createElement('div');
-    wrapper.className = "relative flex items-center mr-3"; // Added margin-right for spacing
+    wrapper.className = "relative flex items-center";
 
     wrapper.innerHTML = `
         <button id="notif-btn" class="bell-ring-hover relative group p-2 rounded-full border border-[var(--gold)] text-[var(--gold)] bg-transparent hover:bg-[var(--gold)] hover:text-black transition-colors duration-300 outline-none">
@@ -73,9 +81,8 @@ function injectNotificationUI() {
         </div>
     `;
 
-    // CRITICAL FIX: Insert BEFORE auth-controls (Sibling), not INSIDE it
-    // This prevents auth.js from wiping the bell when it sets "Welcome User"
-    authContainer.parentNode.insertBefore(wrapper, authContainer);
+    // Insert BEFORE auth-controls (Sibling)
+    authControls.parentNode.insertBefore(wrapper, authControls);
 
     setupInteractions();
 }
@@ -130,7 +137,6 @@ async function loadNotifications() {
             const data = doc.data();
             const date = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleDateString() : 'Just now';
             
-            // Fixed Icons (Emojis were corrupted in previous version)
             let icon = '📢'; 
             if(data.type === 'tournament') icon = '🏆';
             if(data.type === 'event') icon = '🎉';
